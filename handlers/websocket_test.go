@@ -27,19 +27,13 @@ func TestWebsocket(t *testing.T) {
 	}
 	defer conn.Close()
 
-	// Test case 1: Valid JSON payload
-	testPayload := `{"hello":"world","count":42}`
-	err = conn.WriteMessage(websocket.TextMessage, []byte(testPayload))
-	if err != nil {
-		t.Fatalf("Failed to write message: %v", err)
-	}
-
+	// The server should send the initial memory update immediately
 	_, msg, err := conn.ReadMessage()
 	if err != nil {
-		t.Fatalf("Failed to read message: %v", err)
+		t.Fatalf("Failed to read initial message: %v", err)
 	}
 
-	// Verify the response contains the original JSON as a child 'payload' object
+	// Unmarshal and verify the response structure
 	var response map[string]interface{}
 	err = json.Unmarshal(msg, &response)
 	if err != nil {
@@ -51,49 +45,17 @@ func TestWebsocket(t *testing.T) {
 		t.Fatal("Response does not contain 'payload' key")
 	}
 
-	// Convert payloadVal back to JSON to check its structure
-	payloadJSON, err := json.Marshal(payloadVal)
-	if err != nil {
-		t.Fatalf("Failed to marshal payload back to JSON: %v", err)
-	}
-
-	// Compare raw JSON values (ignoring space differences)
-	var originalMap, returnedMap map[string]interface{}
-	if err := json.Unmarshal([]byte(testPayload), &originalMap); err != nil {
-		t.Fatalf("Failed to unmarshal original: %v", err)
-	}
-	if err := json.Unmarshal(payloadJSON, &returnedMap); err != nil {
-		t.Fatalf("Failed to unmarshal returned payload: %v", err)
-	}
-
-	if len(originalMap) != len(returnedMap) || returnedMap["hello"] != "world" || returnedMap["count"].(float64) != 42 {
-		t.Errorf("Expected payload to match original map, got %v", returnedMap)
-	}
-
-	// Test case 2: Non-JSON payload (should be handled gracefully as string)
-	testNonJSON := `hello world`
-	err = conn.WriteMessage(websocket.TextMessage, []byte(testNonJSON))
-	if err != nil {
-		t.Fatalf("Failed to write message: %v", err)
-	}
-
-	_, msg, err = conn.ReadMessage()
-	if err != nil {
-		t.Fatalf("Failed to read message: %v", err)
-	}
-
-	var response2 map[string]interface{}
-	err = json.Unmarshal(msg, &response2)
-	if err != nil {
-		t.Fatalf("Failed to unmarshal response: %v", err)
-	}
-
-	payloadVal2, ok := response2["payload"]
+	// Convert payloadVal to a map to inspect memory fields
+	payloadMap, ok := payloadVal.(map[string]interface{})
 	if !ok {
-		t.Fatal("Response does not contain 'payload' key")
+		t.Fatalf("Expected payload to be a JSON object, got %T", payloadVal)
 	}
 
-	if payloadVal2 != "hello world" {
-		t.Errorf("Expected payload to be string 'hello world', got %v", payloadVal2)
+	// Verify required memory keys are present
+	requiredKeys := []string{"total", "totalGb", "available", "availableGb", "used", "usedGb", "usedPercent"}
+	for _, key := range requiredKeys {
+		if _, exists := payloadMap[key]; !exists {
+			t.Errorf("Expected memory payload to contain key %q", key)
+		}
 	}
 }

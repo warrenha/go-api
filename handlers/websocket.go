@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/gorilla/websocket"
 )
@@ -18,7 +19,7 @@ var upgrader = websocket.Upgrader{
 }
 
 // Websocket handles incoming WebSocket connections, upgrading the protocol,
-// and echoing back any received messages wrapped in a JSON payload.
+// and periodically sending the system's memory info to the client every 5 seconds.
 func Websocket(w http.ResponseWriter, r *http.Request) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
@@ -27,36 +28,57 @@ func Websocket(w http.ResponseWriter, r *http.Request) {
 	}
 	defer conn.Close()
 
-	for {
-		messageType, message, err := conn.ReadMessage()
-		if err != nil {
-			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
-				log.Printf("error reading message: %v", err)
-			}
-			break
-		}
+	// Done channel to signal when the client has disconnected
+	done := make(chan struct{})
 
-		var payload interface{}
-		if json.Valid(message) {
-			payload = json.RawMessage(message)
-		} else {
-			payload = string(message)
+	// Run read loop in a background goroutine to detect disconnects
+	go func() {
+		defer close(done)
+		for {
+			_, _, err := conn.ReadMessage()
+			if err != nil {
+				break
+			}
+		}
+	}()
+
+	ticker := time.NewTicker(5 * time.Second)
+	defer ticker.Stop()
+
+	// Helper to send memory stats
+	sendMemoryStats := func() error {
+		memInfo, err := GetMemoryInfo()
+		if err != nil {
+			return err
 		}
 
 		response := map[string]interface{}{
-			"payload": payload,
+			"payload": memInfo,
 		}
 
 		responseBytes, err := json.Marshal(response)
 		if err != nil {
-			log.Printf("failed to marshal response: %v", err)
-			continue
+			return err
 		}
 
-		err = conn.WriteMessage(messageType, responseBytes)
-		if err != nil {
-			log.Printf("failed to write message: %v", err)
-			break
+		return conn.WriteMessage(websocket.TextMessage, responseBytes)
+	}
+
+	// Send initial memory stats immediately on connection
+	if err := sendMemoryStats(); err != nil {
+		log.Printf("failed to send initial memory stats: %v", err)
+		return
+	}
+
+	for {
+		select {
+		case <-done:
+			return
+		case <-ticker.C:
+			if err := sendMemoryStats(); err != nil {
+				log.Printf("failed to send memory stats: %v", err)
+				return
+			}
 		}
 	}
 }
