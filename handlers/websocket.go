@@ -26,6 +26,11 @@ var upgrader = websocket.Upgrader{
 	},
 }
 
+// WebsocketResponse represents the JSON response broadcasted by the WebSocket.
+type WebsocketResponse struct {
+	Payload *MemoryResponse `json:"payload"`
+}
+
 // sendMemoryStats fetches, formats, and writes the current memory stats to the WebSocket connection.
 func sendMemoryStats(conn *websocket.Conn) error {
 	memInfo, err := GetMemoryInfo()
@@ -33,8 +38,8 @@ func sendMemoryStats(conn *websocket.Conn) error {
 		return err
 	}
 
-	response := map[string]interface{}{
-		"payload": memInfo,
+	response := WebsocketResponse{
+		Payload: memInfo,
 	}
 
 	responseBytes, err := json.Marshal(response)
@@ -118,6 +123,12 @@ func broadcastMemoryStats(conn *websocket.Conn, done <-chan struct{}, interval t
 
 // Websocket handles incoming WebSocket connections, upgrading the protocol,
 // and periodically sending the system's memory info to the client every 5 seconds.
+// @Summary Establish WebSocket connection
+// @Description Upgrades the HTTP connection to a WebSocket. The server periodically broadcasts system memory stats (as WebsocketResponse) every 5 seconds. Connect via ws://localhost:8081/ws
+// @Param Connection header string true "Upgrade" default(Upgrade)
+// @Param Upgrade header string true "websocket" default(websocket)
+// @Success 101 {object} WebsocketResponse "Switching Protocols"
+// @Router /ws [get]
 func Websocket(w http.ResponseWriter, r *http.Request) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {

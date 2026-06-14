@@ -1,0 +1,110 @@
+basePath: /
+definitions:
+  handlers.CpuResponse:
+    properties:
+      usage:
+        type: number
+    type: object
+  handlers.HelloResponse:
+    properties:
+      message:
+        type: string
+    type: object
+  handlers.MemoryResponse:
+    properties:
+      available:
+        type: integer
+      availableGb:
+        type: number
+      total:
+        type: integer
+      totalGb:
+        type: number
+      used:
+        type: integer
+      usedGb:
+        type: number
+      usedPercent:
+        type: number
+    type: object
+  handlers.WebsocketResponse:
+    properties:
+      payload:
+        $ref: '#/definitions/handlers.MemoryResponse'
+    type: object
+host: localhost:8081
+info:
+  contact: {}
+  description: A simple Go API that provides CPU and Memory statistics, and a WebSocket
+    stream.
+  title: Go System Stats API
+  version: "1.0"
+paths:
+  /cpu:
+    get:
+      description: Returns the current CPU usage percentage measured over a 1-second
+        interval
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.CpuResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Get CPU usage
+  /hello:
+    get:
+      description: Returns a simple greeting message
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.HelloResponse'
+      summary: Get a hello message
+  /memory:
+    get:
+      description: Returns details about the virtual memory usage of the system (total,
+        used, available, etc.)
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.MemoryResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Get memory statistics
+  /ws:
+    get:
+      description: Upgrades the HTTP connection to a WebSocket. The server periodically
+        broadcasts system memory stats (as WebsocketResponse) every 5 seconds. Connect
+        via ws://localhost:8081/ws
+      parameters:
+      - default: Upgrade
+        description: Upgrade
+        in: header
+        name: Connection
+        required: true
+        type: string
+      - default: websocket
+        description: websocket
+        in: header
+        name: Upgrade
+        required: true
+        type: string
+      responses:
+        "101":
+          description: Switching Protocols
+          schema:
+            $ref: '#/definitions/handlers.WebsocketResponse'
+      summary: Establish WebSocket connection
+swagger: "2.0"

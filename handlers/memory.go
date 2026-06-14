@@ -45,6 +45,13 @@ func GetMemoryInfo() (*MemoryResponse, error) {
 	return response, nil
 }
 
+// Memory handles the GET /memory request.
+// @Summary Get memory statistics
+// @Description Returns details about the virtual memory usage of the system (total, used, available, etc.)
+// @Produce json
+// @Success 200 {object} MemoryResponse
+// @Failure 500 {string} string "Internal Server Error"
+// @Router /memory [get]
 func Memory(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 

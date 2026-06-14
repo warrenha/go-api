@@ -1,0 +1,160 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "A simple Go API that provides CPU and Memory statistics, and a WebSocket stream.",
+        "title": "Go System Stats API",
+        "contact": {},
+        "version": "1.0"
+    },
+    "host": "localhost:8081",
+    "basePath": "/",
+    "paths": {
+        "/cpu": {
+            "get": {
+                "description": "Returns the current CPU usage percentage measured over a 1-second interval",
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Get CPU usage",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.CpuResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/hello": {
+            "get": {
+                "description": "Returns a simple greeting message",
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Get a hello message",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.HelloResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/memory": {
+            "get": {
+                "description": "Returns details about the virtual memory usage of the system (total, used, available, etc.)",
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Get memory statistics",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.MemoryResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/ws": {
+            "get": {
+                "description": "Upgrades the HTTP connection to a WebSocket. The server periodically broadcasts system memory stats (as WebsocketResponse) every 5 seconds. Connect via ws://localhost:8081/ws",
+                "summary": "Establish WebSocket connection",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "default": "Upgrade",
+                        "description": "Upgrade",
+                        "name": "Connection",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "default": "websocket",
+                        "description": "websocket",
+                        "name": "Upgrade",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "101": {
+                        "description": "Switching Protocols",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.WebsocketResponse"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "handlers.CpuResponse": {
+            "type": "object",
+            "properties": {
+                "usage": {
+                    "type": "number"
+                }
+            }
+        },
+        "handlers.HelloResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "handlers.MemoryResponse": {
+            "type": "object",
+            "properties": {
+                "available": {
+                    "type": "integer"
+                },
+                "availableGb": {
+                    "type": "number"
+                },
+                "total": {
+                    "type": "integer"
+                },
+                "totalGb": {
+                    "type": "number"
+                },
+                "used": {
+                    "type": "integer"
+                },
+                "usedGb": {
+                    "type": "number"
+                },
+                "usedPercent": {
+                    "type": "number"
+                }
+            }
+        },
+        "handlers.WebsocketResponse": {
+            "type": "object",
+            "properties": {
+                "payload": {
+                    "$ref": "#/definitions/handlers.MemoryResponse"
+                }
+            }
+        }
+    }
+}
