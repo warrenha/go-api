@@ -2,8 +2,10 @@ package handlers
 
 import (
 	"encoding/json"
+	"math"
 	"net/http"
-    "math"
+
+	"go-api/models"
 
 	"github.com/shirou/gopsutil/v4/mem"
 )
@@ -15,24 +17,14 @@ func round(value float64, places int) float64 {
 	return math.Round(value*factor) / factor
 }
 
-type MemoryResponse struct {
-	Total       uint64  `json:"total"`
-	TotalGB     float64 `json:"totalGb"`
-	Available   uint64  `json:"available"`
-	AvailableGB float64 `json:"availableGb"`
-	Used        uint64  `json:"used"`
-	UsedGB      float64 `json:"usedGb"`
-	UsedPercent float64 `json:"usedPercent"`
-}
-
 // GetMemoryInfo fetches and formats virtual memory statistics.
-func GetMemoryInfo() (*MemoryResponse, error) {
+func GetMemoryInfo() (*models.MemoryResponse, error) {
 	memInfo, err := mem.VirtualMemory()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &MemoryResponse{
+	response := &models.MemoryResponse{
 		Total:       memInfo.Total,
 		TotalGB:     round(float64(memInfo.Total)/GB, 3),
 		Available:   memInfo.Available,
@@ -49,7 +41,7 @@ func GetMemoryInfo() (*MemoryResponse, error) {
 // @Summary Get memory statistics
 // @Description Returns details about the virtual memory usage of the system (total, used, available, etc.)
 // @Produce json
-// @Success 200 {object} MemoryResponse
+// @Success 200 {object} models.MemoryResponse
 // @Failure 500 {string} string "Internal Server Error"
 // @Router /memory [get]
 func Memory(w http.ResponseWriter, r *http.Request) {

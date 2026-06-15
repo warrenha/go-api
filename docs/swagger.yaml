@@ -1,16 +1,16 @@
 basePath: /
 definitions:
-  handlers.CpuResponse:
+  models.CpuResponse:
     properties:
       usage:
         type: number
     type: object
-  handlers.HelloResponse:
+  models.HelloResponse:
     properties:
       message:
         type: string
     type: object
-  handlers.MemoryResponse:
+  models.MemoryResponse:
     properties:
       available:
         type: integer
@@ -27,10 +27,10 @@ definitions:
       usedPercent:
         type: number
     type: object
-  handlers.WebsocketResponse:
+  models.WebsocketResponse:
     properties:
       payload:
-        $ref: '#/definitions/handlers.MemoryResponse'
+        $ref: '#/definitions/models.MemoryResponse'
     type: object
 host: localhost:8081
 info:
@@ -50,7 +50,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/handlers.CpuResponse'
+            $ref: '#/definitions/models.CpuResponse'
         "500":
           description: Internal Server Error
           schema:
@@ -65,7 +65,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/handlers.HelloResponse'
+            $ref: '#/definitions/models.HelloResponse'
       summary: Get a hello message
   /memory:
     get:
@@ -77,7 +77,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/handlers.MemoryResponse'
+            $ref: '#/definitions/models.MemoryResponse'
         "500":
           description: Internal Server Error
           schema:
@@ -105,6 +105,6 @@ paths:
         "101":
           description: Switching Protocols
           schema:
-            $ref: '#/definitions/handlers.WebsocketResponse'
+            $ref: '#/definitions/models.WebsocketResponse'
       summary: Establish WebSocket connection
 swagger: "2.0"

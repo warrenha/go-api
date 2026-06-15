@@ -26,7 +26,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/handlers.CpuResponse"
+                            "$ref": "#/definitions/models.CpuResponse"
                         }
                     },
                     "500": {
@@ -49,7 +49,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/handlers.HelloResponse"
+                            "$ref": "#/definitions/models.HelloResponse"
                         }
                     }
                 }
@@ -66,7 +66,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/handlers.MemoryResponse"
+                            "$ref": "#/definitions/models.MemoryResponse"
                         }
                     },
                     "500": {
@@ -104,7 +104,7 @@ const docTemplate = `{
                     "101": {
                         "description": "Switching Protocols",
                         "schema": {
-                            "$ref": "#/definitions/handlers.WebsocketResponse"
+                            "$ref": "#/definitions/models.WebsocketResponse"
                         }
                     }
                 }
@@ -112,7 +112,7 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "handlers.CpuResponse": {
+        "models.CpuResponse": {
             "type": "object",
             "properties": {
                 "usage": {
@@ -120,7 +120,7 @@ const docTemplate = `{
                 }
             }
         },
-        "handlers.HelloResponse": {
+        "models.HelloResponse": {
             "type": "object",
             "properties": {
                 "message": {
@@ -128,7 +128,7 @@ const docTemplate = `{
                 }
             }
         },
-        "handlers.MemoryResponse": {
+        "models.MemoryResponse": {
             "type": "object",
             "properties": {
                 "available": {
@@ -154,11 +154,11 @@ const docTemplate = `{
                 }
             }
         },
-        "handlers.WebsocketResponse": {
+        "models.WebsocketResponse": {
             "type": "object",
             "properties": {
                 "payload": {
-                    "$ref": "#/definitions/handlers.MemoryResponse"
+                    "$ref": "#/definitions/models.MemoryResponse"
                 }
             }
         }
